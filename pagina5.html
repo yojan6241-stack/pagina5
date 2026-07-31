@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Desarrollo de Contenidos Digitales en Entorno Cliente-Servidor y en Entorno Servidor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700;800&family=IBM+Plex+Mono:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --radius:2px;
+  --mono: 'JetBrains Mono', 'IBM Plex Mono', monospace;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  font-family:var(--mono);
+  line-height:1.6;
+}
+
+/* ================= ZONE THEMES ================= */
+.zone{position:relative; overflow:hidden;}
+.zone-bg{position:absolute; inset:0; z-index:0; pointer-events:none;}
+.zone-content{position:relative; z-index:2;}
+
+.zone-cliente{
+  --bg-0:#fff7dc;
+  --bg-1:#fffdf3;
+  --bg-2:#ffe9bd;
+  --amber:#d6247a;
+  --amber-dim:#9c1856;
+  --amber-faint:#ffd9ec;
+  --amber-glow:rgba(214,36,122,0.32);
+  --leaf:#c98a10;
+  --leaf-dim:#95650a;
+  --leaf-faint:#ffe6ac;
+  --fg:#4a3410;
+  --fg-dim:#a6874f;
+  --line:#f5dda0;
+  background:var(--bg-0);
+  color:var(--fg);
+}
+
+.zone-servidor{
+  --bg-0:#fdeef5;
+  --bg-1:#fff9fc;
+  --bg-2:#fbdcea;
+  --amber:#d6247a;
+  --amber-dim:#9c1856;
+  --amber-faint:#f6cde1;
+  --amber-glow:rgba(214,36,122,0.35);
+  --leaf:#5a9c6f;
+  --leaf-dim:#3d7350;
+  --leaf-faint:#cfe9d6;
+  --fg:#3a1f2e;
+  --fg-dim:#93728a;
+  --line:#f3c9dc;
+  background:var(--bg-0);
+  color:var(--fg);
+}
+
+/* ---------- cliente background: stars ---------- */
+.bg-stars{
+  position:absolute; inset:0; z-index:0;
+  background-image:
+    url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="180" height="180"><g fill="%23d6247a" opacity="0.55"><path d="M20 10 L23 18 L31 18 L24.5 23 L27 31 L20 26 L13 31 L15.5 23 L9 18 L17 18 Z"/></g><g fill="%23c98a10" opacity="0.55"><circle cx="90" cy="40" r="2.4"/><circle cx="130" cy="90" r="2"/><circle cx="60" cy="120" r="2.6"/><circle cx="150" cy="20" r="1.8"/><circle cx="30" cy="150" r="2.2"/></g><g fill="%23d6247a" opacity="0.4"><path d="M140 130 L142.5 137 L149 137 L143.7 141 L145.8 148 L140 144 L134.2 148 L136.3 141 L131 137 L137.5 137 Z"/></g></svg>');
+  background-size:180px 180px;
+  opacity:0.55;
+  mask-image: radial-gradient(ellipse 85% 65% at 50% 15%, black 30%, transparent 92%);
+}
+.bg-glow-cliente{
+  position:absolute; inset:0; z-index:0;
+  background:radial-gradient(ellipse at 50% 0%, rgba(214,36,122,0.10) 0%, transparent 45%),
+             radial-gradient(ellipse at 85% 30%, rgba(201,138,16,0.14) 0%, transparent 50%);
+}
+
+/* ---------- servidor background: floral texture + scanlines + vignette ---------- */
+.bg-grid{
+  position:absolute; inset:0; z-index:0;
+  background-image:
+    linear-gradient(var(--line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line) 1px, transparent 1px);
+  background-size:42px 42px;
+  opacity:0.35;
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 20%, black 30%, transparent 90%);
+}
+.bg-vignette{
+  position:absolute; inset:0; z-index:0;
+  background:radial-gradient(ellipse at 50% 0%, transparent 40%, rgba(90,156,111,0.14) 100%);
+}
+.bg-side-left, .bg-side-right{
+  position:absolute; top:0; bottom:0; width:120px; z-index:0;
+  background-repeat:repeat-y; background-size:120px 240px;
+  opacity:0.5; pointer-events:none;
+}
+.bg-side-left{
+  left:0;
+  background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="120" height="240"><path d="M10 0 V240" stroke="%235a9c6f" stroke-width="2" fill="none" opacity="0.5"/><path d="M10 30 C30 20 35 40 15 45" stroke="%235a9c6f" stroke-width="2" fill="none" opacity="0.5"/><path d="M10 90 C-10 80 -15 100 5 105" stroke="%235a9c6f" stroke-width="2" fill="none" opacity="0.5"/><circle cx="10" cy="60" r="7" fill="%23d6247a" opacity="0.35"/><circle cx="10" cy="150" r="7" fill="%23d6247a" opacity="0.35"/><path d="M10 180 C30 170 35 190 15 195" stroke="%235a9c6f" stroke-width="2" fill="none" opacity="0.5"/></svg>');
+}
+.bg-side-right{
+  right:0;
+  background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="120" height="240"><path d="M110 0 V240" stroke="%235a9c6f" stroke-width="2" fill="none" opacity="0.5"/><path d="M110 40 C90 30 85 50 105 55" stroke="%235a9c6f" stroke-width="2" fill="none" opacity="0.5"/><path d="M110 110 C130 100 135 120 115 125" stroke="%235a9c6f" stroke-width="2" fill="none" opacity="0.5"/><circle cx="110" cy="80" r="7" fill="%23d6247a" opacity="0.35"/><circle cx="110" cy="200" r="7" fill="%23d6247a" opacity="0.35"/><path d="M110 160 C90 150 85 170 105 175" stroke="%235a9c6f" stroke-width="2" fill="none" opacity="0.5"/></svg>');
+}
+@media (max-width:900px){ .bg-side-left,.bg-side-right{display:none;} }
+
+/* ---------- layout shell ---------- */
+.wrap{position:relative; z-index:2; max-width:980px; margin:0 auto; padding:64px 24px 100px;}
+
+/* ---------- hero ---------- */
+.hero{text-align:center; padding-bottom:56px; border-bottom:1px solid var(--line); margin-bottom:56px;}
+.hero .prompt-line{
+  font-size:12px; letter-spacing:.12em; color:var(--fg-dim); margin-bottom:18px;
+}
+.hero .prompt-line .cursor{
+  display:inline-block; width:8px; height:14px; background:var(--amber);
+  margin-left:6px; vertical-align:middle; animation:blink 1.1s steps(1) infinite;
+  box-shadow:0 0 8px var(--amber-glow);
+}
+@keyframes blink{ 50%{opacity:0;} }
+.hero h1{
+  font-size:clamp(24px,4vw,42px);
+  font-weight:800;
+  letter-spacing:-0.01em;
+  margin:0 0 22px;
+  color:var(--amber);
+  text-shadow:0 0 18px var(--amber-glow), 0 0 2px var(--amber-glow);
+}
+.hero p{
+  max-width:680px; margin:0 auto; color:var(--fg-dim); font-size:14.5px; font-style:italic;
+}
+
+.unit-box-holder{display:flex; justify-content:center; margin-bottom:64px;}
+.unit-box{
+  position:relative; text-align:center; padding:18px 34px;
+  border:1px solid var(--line); background:var(--bg-1); border-radius:var(--radius);
+}
+.unit-box::before,.unit-box::after{
+  content:''; position:absolute; width:14px; height:14px; border:2px solid var(--leaf);
+}
+.unit-box::before{top:-1px; left:-1px; border-right:none; border-bottom:none;}
+.unit-box::after{bottom:-1px; right:-1px; border-left:none; border-top:none;}
+.unit-box .eyebrow{font-size:10.5px; color:var(--leaf-dim); letter-spacing:.2em; display:block; margin-bottom:8px;}
+.unit-box h2{margin:0; font-size:clamp(15px,2.4vw,21px); color:var(--amber); letter-spacing:.02em; font-weight:600;}
+
+/* ---------- module (RA) heading ---------- */
+.module{margin-bottom:88px;}
+.module-head{text-align:center; margin-bottom:36px;}
+.module-head .tag{
+  display:inline-block; font-size:11px; color:var(--bg-0); background:var(--leaf);
+  padding:3px 10px; border-radius:1px; letter-spacing:.1em; margin-bottom:14px; font-weight:700;
+}
+.module-head h3{margin:0 0 12px; font-size:clamp(20px,3vw,30px); color:var(--fg); font-weight:700;}
+.module-head .module-summary{
+  max-width:640px; margin:0 auto; color:var(--fg-dim); font-size:13.5px; line-height:1.75;
+}
+
+/* ---------- topic card ---------- */
+.topics{display:flex; flex-direction:column; gap:18px;}
+.card{
+  border:1px solid var(--line);
+  background:var(--bg-1);
+  border-radius:var(--radius);
+  overflow:hidden;
+  transition:border-color .2s ease, box-shadow .2s ease;
+}
+.card:hover{border-color:var(--amber-dim); box-shadow:0 0 24px rgba(214,36,122,0.10), 0 0 10px rgba(90,156,111,0.12);}
+.card-bar{
+  display:flex; align-items:center; gap:10px;
+  padding:9px 16px;
+  background:var(--bg-2);
+  border-bottom:1px solid var(--line);
+  font-size:11.5px; color:var(--fg-dim);
+}
+.card-bar .idx{color:var(--leaf-dim); font-weight:700;}
+.card-body{padding:22px 26px 26px;}
+.card h4{
+  margin:0 0 14px; color:var(--amber); font-size:17px; font-weight:700; letter-spacing:.01em;
+}
+.card .info{color:var(--fg); font-size:14px; line-height:1.8; margin:0 0 16px;}
+.card .example{
+  color:var(--fg-dim); font-size:13.2px; line-height:1.75; margin:0 0 14px;
+  padding-left:14px; border-left:2px solid var(--leaf); font-style:italic;
+}
+.card .fact{
+  font-size:12.3px; color:var(--fg-dim); margin:0 0 20px; opacity:.9;
+}
+
+.card-media{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+@media (max-width:620px){.card-media{grid-template-columns:1fr;}}
+.slot{
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  padding:10px;
+  min-height:64px;
+  display:flex; flex-direction:column; justify-content:center; gap:6px;
+  font-size:11px; color:var(--fg-dim);
+  background:var(--bg-2);
+}
+.slot .slot-label{letter-spacing:.08em; color:var(--leaf-dim); font-size:10px; text-transform:uppercase;}
+.slot.img-slot{align-items:stretch; text-align:center; padding:8px;}
+.slot.img-slot img{
+  width:100%; height:110px; object-fit:contain; border-radius:var(--radius);
+  border:1px solid var(--line); display:block; background:var(--bg-1);
+}
+.slot.link-slot{justify-content:space-between;}
+.slot.link-slot a{
+  color:var(--amber-dim); font-family:var(--mono); font-size:12.5px; font-weight:600;
+  text-decoration:none; border-bottom:1px solid var(--amber-faint); padding-bottom:2px;
+  word-break:break-word;
+}
+.slot.link-slot a:hover{color:var(--amber); border-bottom-color:var(--amber);}
+
+/* ---------- page navigation ---------- */
+.page-nav{
+  display:flex; justify-content:center; align-items:center; gap:14px;
+  flex-wrap:wrap; margin-bottom:64px;
+}
+.nav-btn{
+  font-family:var(--mono); font-size:12.5px; font-weight:700; letter-spacing:.04em;
+  color:var(--amber-dim); background:var(--bg-2); border:1px solid var(--line);
+  padding:11px 22px; border-radius:var(--radius); text-decoration:none;
+  transition:border-color .2s ease, box-shadow .2s ease, color .2s ease, background .2s ease;
+}
+.nav-btn:hover{border-color:var(--amber); color:var(--amber); box-shadow:0 0 16px var(--amber-glow);}
+.nav-btn.active{
+  background:var(--amber); color:var(--bg-1); border-color:var(--amber);
+  box-shadow:0 0 16px var(--amber-glow);
+  cursor:default;
+}
+
+/* ---------- divider between zones ---------- */
+.zone-divider{
+  text-align:center; padding:36px 24px; background:#2a2233; color:#e9d9ee;
+  font-size:11.5px; letter-spacing:.14em;
+}
+.zone-divider span{color:#f2a8cf;}
+
+/* ---------- footer ---------- */
+footer{
+  position:relative; z-index:2; text-align:center; padding:40px 24px 60px;
+  background:#2a2233; color:#c9b7cf; font-size:11.5px;
+}
+footer .sig{color:#f2a8cf;}
+</style>
+</head>
+<body>
+
+<section class="zone zone-cliente" id="zona-cliente">
+  <div class="zone-bg">
+    <div class="bg-glow-cliente"></div>
+    <div class="bg-stars"></div>
+  </div>
+  <div class="zone-content">
+  <div class="wrap">
+
+    <div class="hero">
+      <p class="prompt-line">MÓDULO 05 · DESARROLLO WEB EN EL CLIENTE<span class="cursor"></span></p>
+      <h1>Desarrollo de Contenidos Digitales en Entorno Cliente-Servidor</h1>
+      <p>Un recorrido por la construcción de páginas web del lado del cliente: plataformas, navegadores, lenguajes de marcado, contenidos multimedia, programación estructurada y las técnicas que hacen un sitio accesible y usable para cualquier persona.</p>
+    </div>
+
+    <div class="unit-box-holder">
+      <div class="unit-box">
+        <span class="eyebrow">NOMBRE DE LA UNIDAD</span>
+        <h2>Desarrollo de Contenidos Digitales en Entorno Cliente-Servidor</h2>
+      </div>
+    </div>
+
+    <div class="page-nav">
+      <a href="index.html" class="nav-btn">Publicación de contenidos en plataformas digitales</a>
+      <a href="pagina2.html" class="nav-btn">Mantenimiento de plataforma Informática</a>
+      <a href="pagina3.html" class="nav-btn">Diseño de Sistemas Informáticos</a>
+      <a href="pagina4.html" class="nav-btn">Modelado de base de datos</a>
+      <a href="pagina5.html" class="nav-btn active">Contenidos Digitales · Cliente-Servidor</a>
+    </div>
+
+    <div id="modules-cliente">
+      <section class="module">
+        <div class="module-head">
+          <span class="tag">RA1</span>
+          <h3>Desarrollo de software Web en el cliente</h3>
+        </div>
+        <div class="topics">
+          <article class="card">
+            <div class="card-bar"><span class="idx">C1.01</span><span>Plataformas tecnológicas y entornos de desarrollo en el cliente</span></div>
+            <div class="card-body">
+              <h4>Plataformas tecnológicas y entornos de desarrollo en el cliente</h4>
+              <p class="info">Una plataforma tecnológica en el cliente agrupa el navegador, el sistema operativo y las herramientas de edición usadas para construir páginas que se ejecutan directamente en el equipo del usuario. Elegir bien este entorno condiciona la compatibilidad, el rendimiento y la facilidad de mantenimiento del sitio.</p>
+              <p class="example">Un desarrollador configura su editor con una vista previa en vivo para probar sus páginas sin salir del programa.</p>
+              <p class="fact">La mayoría de los entornos de desarrollo actuales integran un servidor local que recarga la página automáticamente al guardar cambios.</p>
+              <div class="card-media">
+                <div class="slot img-slot">
+                  <span class="slot-label">Imagen ilustrativa</span>
+                  <img src="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2264%22%20height%3D%2264%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20fill%3D%22%23fff3d6%22/%3E%3Crect%20x%3D%2210%22%20y%3D%2212%22%20width%3D%2244%22%20height%3D%2240%22%20rx%3D%222%22%20fill%3D%22none%22%20stroke%3D%22%237a4a12%22%20stroke-width%3D%222.5%22/%3E%3Cline%20x1%3D%2210%22%20y1%3D%2222%22%20x2%3D%2254%22%20y2%3D%2222%22%20stroke%3D%22%237a4a12%22%20stroke-width%3D%222.5%22/%3E%3Ccircle%20cx%3D%2216%22%20cy%3D%2217%22%20r%3D%221.6%22%20fill%3D%22%237a4a12%22/%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2217%22%20r%3D%221.6%22%20fill%3D%22%237a4a12%22/%3E%3C/svg%3E" alt="Plataformas tecnológicas y entornos de desarrollo en el cliente" loading="lazy">
+                </div>
+                <div class="slot link-slot">
+                  <span class="slot-label">Enlace de referencia</span>
+                  <a href="https://www.google.com/search?q=Plataformas%20tecnol%C3%B3gicas%20y%20entornos%20de%20desarrollo%20en%20el%20cliente" target="_blank" rel="noopener">Buscar sobre "Plataformas tecnológicas y entornos de desarrollo en el cliente" &rarr;</a>
+                </div>
+              </div>
+            </div>
+          </article>
+          <article class="card">
+            <div class="card-bar"><span class="idx">C1.02</span><span>Elección de una plataforma: criterios</span></div>
+            <div class="card-body">
+              <h4>Elección de una plataforma: criterios</h4>
+              <p class="info">Seleccionar una plataforma de desarrollo implica valorar criterios como el soporte de estándares, la curva de aprendizaje, el coste de las licencias y la comunidad de soporte disponible. No existe una única opción válida para todos los proyectos.</p>
+              <p class="example">Un equipo descarta un editor de pago porque su alternativa gratuita ofrece las mismas funciones de autocompletado para HTML y CSS.</p>
+              <p class="fact">Los criterios técnicos suelen pesar menos que la compatibilidad con el flujo de trabajo que ya usa el equipo.</p>
+              <div class="card-media">
+                <div class="slot img-slot">
+                  <span class="slot-label">Imagen ilustrativa</span>
+                  <img src="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2264%22%20height%3D%2264%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20fill%3D%22%23fff3d6%22/%3E%3Cline%20x1%3D%2222%22%20y1%3D%2216%22%20x2%3D%2254%22%20y2%3D%2216%22%20stroke%3D%22%237a4a12%22%20stroke-width%3D%222.5%22/%3E%3Cline%20x1%3D%2222%22%20y1%3D%2232%22%20x2%3D%2254%22%20y2%3D%2232%22%20stroke%3D%22%237a4a12%22%20stroke-width%3D%222.5%22/%3E%3Cline%20x1%3D%2222%22%20y1%3D%2248%22%20x2%3D%2254%22%20y2%3D%2248%22%20stroke%3D%22%237a4a12%22%20stroke-width%3D%222.5%22/%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2216%22%20r%3D%222.6%22%20fill%3D%22%237a4a12%22/%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2232%22%20r%3D%222.6%22%20fill%3D%22%237a4a12%22/%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2248%22%20r%3D%222.6%22%20fill%3D%22%237a4a12%22/%3E%3C/svg%3E" alt="Elección de una plataforma: criterios" loading="lazy">
+                </div>
+                <div class="slot link-slot">
+                  <span class="slot-label">Enlace de referencia</span>
+                  <a href="https://www.google.com/search?q=Elecci%C3%B3n%20de%20una%20plataforma%3A%20criterios" target="_blank" rel="noopener">Buscar sobre "Elección de una plataforma: criterios" &rarr;</a>
+                </div>
+              </div>
+            </div>
+          </article>
+          <article class="card">
+            <div class="card-bar"><span class="idx">C1.03</span><span>Navegadores</span></div>
+            <div class="card-body">
+              <h4>Navegadores</h4>
+              <p class="info">El navegador interpreta el código HTML, CSS y JavaScript y lo convierte en la página visible para el usuario, por lo que sus diferencias de implementación son una fuente constante de incompatibilidades. Probar en varios navegadores es una práctica habitual antes de publicar.</p>
+              <p class="example">Una página se ve correctamente en un navegador pero el diseño se rompe en otro más antiguo por falta de soporte de una propiedad CSS.</p>
+              <p class="fact">Los motores de renderizado más usados actualmente son Blink, WebKit y Gecko, cada uno con su propio ritmo de actualización.</p>
+              <div class="card-media">
+                <div class="slot img-slot">
+                  <span class="slot-label">Imagen ilustrativa</span>
+                  <img src="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2264%22%20height%3D%2264%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20fill%3D%22%23fff3d6%22/%3E%3Crect%20x%3D%2210%22%20y%3D%2212%22%20width%3D%2244%22%20height%3D%2240%22%20rx%3D%222%22%20fill%3D%22none%22%20stroke%3D%22%237a4a12%22%20stroke-width%3D%222.5%22/%3E%3Cline%20x1%3D%2210%22%20y1%3D%2222%22%20x2%3D%2254%22%20y2%3D%2222%22%20stroke%3D%22%237a4a12%22%20stroke-width%3D%222.5%22/%3E%3Ccircle%20cx%3D%2216%22%20cy%3D%2217%22%20r%3D%221.6%22%20fill%3D%22%237a4a12%22/%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2217%22%20r%3D%221.6%22%20fill%3D%22%237a4a12%22/%3E%3C/svg%3E" alt="Navegadores" loading="lazy">
+                </div>
+                <div class="slot link-slot">
+                  <span class="slot-label">Enlace de referencia</span>
+                  <a href="https://www.google.com/search?q=Navegadores" target="_blank" rel="noopener">Buscar sobre "Navegadores" &rarr;</a>
+                </div>
+              </div>
+            </div>
+          </article>
+          <article class="card">
+            <div class="card-bar"><span class="idx">C1.04</span><span>Lenguajes de marcado</span></div>
+            <div class="card-body">
+              <h4>Lenguajes de marcado</h4>
+              <p class="info">Un lenguaje de marcado describe la estructura y el contenido de un documento mediante etiquetas, sin especificar por sí mismo cómo debe verse. HTML es el ejemplo más usado en el desarrollo web del lado del cliente.</p>
+              <p class="example">Una etiqueta de tipo artículo indica que ese bloque de contenido es independiente y puede distribuirse por separado del resto de la página.</p>
+              <p class="fact">El término «marcado» proviene de la tradición editorial, donde los correctores anotaban instrucciones directamente sobre el texto impreso.</p>
+              <div class="card-media">
+                <div class="slot img-slot">
+                  <span class="slot-label">Imagen ilustrativa</span>
+                  <img src="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2264%22%20height%3D%2264%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20fill%3D%22%23fff3d6%22/%3E%3Cpath%20d%3D%22M20%2016%20L8%2032%20L20%2048%22%20fill%3D%22none%22%20stroke%3D%22%237a4a12%22%20stroke-width%3D%222.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3Cpath%20d%3D%22M44%2016%20L56%2032%20L44%2048%22%20fill%3D%22none%22%20stroke%3D%22%237a4a12%22%20stroke-width%3D%222.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3Cline%20x1%3D%2235%22%20y1%3D%2214%22%20x2%3D%2229%22%20y2%3D%2250%22%20stroke%3D%22%237a4a12%22%20stroke-width%3D%222%22/%3E%3C/svg%3E" alt="Lenguajes de marcado" loading="lazy">
+                </div>
+                <div class="slot link-slot">
+                  <span class="slot-label">Enlace de referencia</span>
+                  <a href="https://www.google.com/search?q=Lenguajes%20de%20marcado" target="_blank" rel="noopener">Buscar sobre "Lenguajes de marcado" &rarr;</a>
+                </div>
+              </div>
+            </div>
+          </article>
+          <article class="card">
+            <div class="card-bar"><span class="idx">C1.05</span><span>Características de los lenguajes de marcado</span></div>
+            <div class="card-body">
+              <h4>Características de los lenguajes de marcado</h4>
+              <p class="info">Los lenguajes de marcado comparten rasgos como el uso de etiquetas anidadas, atributos que amplían el significado de un elemento y una sintaxis que puede validarse automáticamente. Estas características facilitan que distintas herramientas interpreten el documento de forma coherente.</p>
+              <p class="example">Un validador de HTML detecta una etiqueta sin cerrar antes de que el error provoque un renderizado incorrecto en el navegador.</p>
+              <p class="fact">Un documento de marcado bien formado puede validarse sin necesidad de ejecutar ningún programa, solo revisando su sintaxis.</p>
+              <div class="card-media">
+                <div class="slot img-slot">
+                  <span class="slot-label">Imagen ilustrativa</span>
+                  <img src="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2264%22%20height%3D%2264%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20fill%3D%22%23fff3d6%22/%3E%3Cpath%20d%3D%22M20%2016%20L8%2032%20L20%2048%22%20fill%3D%22none%22%20stroke%3D%22%237a4a12%22%20stroke-width%3D%222.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3Cpath%20d%3D%22M44%2016%20L56%2032%20L44%2048%22%20fill%3D%22none%22%20stroke%3D%22%237a4a12%22%20stroke-width%3D%222.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3Cline%20x1%3D%2235%22%20y1%3D%2214%22%20x2%3D%2229%22%20y2%3D%2250%22%20stroke%3D%22%237a4a12%22%20stroke-width%3D%222%22/%3E%3C/svg%3E" alt="Características de los lenguajes de marcado" loading="lazy">
+                </div>
+                <div class="slot link-slot">
+                  <span class="slot-label">Enlace de referencia</span>
+                  <a href="https://www.google.com/search?q=Caracter%C3%ADsticas%20de%20los%20lenguajes%20de%20marcado" target="_blank" rel="noopener">Buscar sobre "Características de los lenguajes de marcado" &rarr;</a>
+                </div>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+      <section class="module">
+        <div class="module-head">
+          <span class="tag">RA2</span>
+          <h3>Contenidos multimedia y programación estructurada</h3>
+        </div>
+        <div class="topics">
+          <article class="card">
+            <div class="card-bar"><span class="idx">C2.01</span><span>Contenidos multimedia</span></div>
+            <div class="card-body">
+              <h4>Contenidos multimedia</h4>
+              <p class="info">Los contenidos multimedia combinan imagen, audio, vídeo y animación dentro de una misma página para enriquecer la experiencia del usuario. Su integración correcta exige equilibrar calidad visual con tiempos de carga razonables.</p>
+              <p class="example">Una página educativa incrusta un vídeo explicativo junto con una transcripción para quienes prefieren leer el contenido.</p>
+              <p class="fact">El formato de vídeo elegido puede cambiar drásticamente el peso del archivo sin que se note diferencia visible en la calidad.</p>
+              <div class="card-media">
+                <div class="slot img-slot">
+                  <span class="slot-label">Imagen ilustrativa</span>
+                  <img src="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2264%22%20height%3D%2264%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20fill%3D%22%23fff3d6%22/%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%2222%22%20fill%3D%22none%22%20stroke%3D%22%237a4a12%22%20stroke-width%3D%222.5%22/%3E%3Cpath%20d%3D%22M27%2022%20L44%2032%20L27%2042%20Z%22%20fill%3D%22%237a4a12%22/%3E%3C/svg%3E" alt="Contenidos multimedia" loading="lazy">
+                </div>
+                <div class="slot link-slot">
+                  <span class="slot-label">Enlace de referencia</span>
+                  <a href="https://www.google.com/search?q=Contenidos%20multimedia" target="_blank" rel="noopener">Buscar sobre "Contenidos multimedia" &rarr;</a>
+                </div>
+              </div>
+            </div>
+          </article>
+          <article class="card">
+            <div class="card-bar"><span class="idx">C2.02</span><span>Herramientas multimedia</span></div>
+            <div class="card-body">
+              <h4>Herramientas multimedia</h4>
+              <p class="info">Las herramientas multimedia permiten crear, editar y optimizar los recursos visuales y sonoros antes de incorporarlos a una página web. Comprimir correctamente estos archivos evita que la página se vuelva lenta.</p>
+              <p class="example">Un editor de imágenes exporta una foto en un formato más ligero para reducir su peso sin perder nitidez visible.</p>
+              <p class="fact">Optimizar una sola imagen mal comprimida puede reducir el tiempo de carga de una página en varios segundos.</p>
+              <div class="card-media">
+                <div class="slot img-slot">
+                  <span class="slot-label">Imagen ilustrativa</span>
+                  <img src="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2264%22%20height%3D%2264%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20fill%3D%22%23fff3d6%22/%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%2222%22%20fill%3D%22none%22%20stroke%3D%22%237a4a12%22%20stroke-width%3D%222.5%22/%3E%3Cpath%20d%3D%22M27%2022%20L44%2032%20L27%2042%20Z%22%20fill%3D%22%237a4a12%22/%3E%3C/svg%3E" alt="Herramientas multimedia" loading="lazy">
+                </div>
+                <div class="slot link-slot">
+                  <span class="slot-label">Enlace de referencia</span>
+                  <a href="https://www.google.com/search?q=Herramientas%20multimedia" target="_blank" rel="noopener">Buscar sobre "Herramientas multimedia" &rarr;</a>
+                </div>
+              </div>
+            </div>
+          </article>
+          <article class="card">
+            <div class="card-bar"><span class="idx">C2.03</span><span>Integración de componentes multimedia</span></div>
+            <div class="card-body">
+              <h4>Integración de componentes multimedia</h4>
+              <p class="info">Integrar componentes multimedia consiste en insertarlos dentro del documento de forma que respondan bien a distintos tamaños de pantalla y no interrumpan la navegación. Usar los reproductores nativos del navegador simplifica esta tarea frente a complementos externos.</p>
+              <p class="example">Un reproductor de vídeo se ajusta automáticamente al ancho del contenedor cuando la página se ve desde un teléfono móvil.</p>
+              <p class="fact">Los reproductores multimedia nativos del navegador han reducido en gran medida la dependencia de complementos externos que antes eran necesarios.</p>
+              <div class="card-media">
+                <div class="slot img-slot">
+                  <span class="slot-label">Imagen ilustrativa</span>
+                  <img src="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2264%22%20height%3D%2264%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20fill%3D%22%23fff3d6%22/%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%2222%22%20fill%3D%22none%22%20stroke%3D%22%237a4a12%22%20stroke-width%3D%222.5%22/%3E%3Cpath%20d%3D%22M27%2022%20L44%2032%20L27%2042%20Z%22%20fill%3D%22%237a4a12%22/%3E%3C/svg%3E" alt="Integración de componentes multimedia" loading="lazy">
+                </div>
+                <div class="slot link-slot">
+                  <span class="slot-label">Enlace de referencia</span>
+                  <a href="https://www.google.com/search?q=Integraci%C3%B3n%20de%20componentes%20multimedia" target="_blank" rel="noopener">Buscar sobre "Integración de componentes multimedia" &rarr;</a>
+                </div>
+              </div>
+            </div>
+          </article>
+          <article class="card">
+            <div class="card-bar"><span class="idx">C2.04</span><span>Técnicas de programación estructurada</span></div>
+            <div class="card-body">
+              <h4>Técnicas de programación estructurada</h4>
+              <p class="info">La programación estructurada organiza el código en secuencias, decisiones y repeticiones, evitando saltos desordenados que dificultan su lectura. Esta disciplina facilita mantener y depurar los scripts del lado del cliente.</p>
+              <p class="example">Un script reemplaza una serie de instrucciones repetidas por un bucle, reduciendo el código a una fracción de su tamaño original.</p>
+              <p class="fact">La programación estructurada surgió como respuesta directa a los problemas de mantenimiento que generaba el uso libre de saltos incondicionales.</p>
+              <div class="card-media">
+                <div class="slot img-slot">
+                  <span class="slot-label">Imagen ilustrativa</span>
+                  <img src="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2264%22%20height%3D%2264%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20fill%3D%22%23fff3d6%22/%3E%3Cpath%20d%3D%22M10%2032%20H24%22%20stroke%3D%22%237a4a12%22%20stroke-width%3D%222.5%22/%3E%3Cpath%20d%3D%22M24%2032%20C24%2020%2C%2040%2020%2C%2040%2032%22%20fill%3D%22none%22%20stroke%3D%22%237a4a12%22%20stroke-width%3D%222.5%22/%3E%3Cpath%20d%3D%22M24%2032%20C24%2044%2C%2040%2044%2C%2040%2032%22%20fill%3D%22none%22%20stroke%3D%22%237a4a12%22%20stroke-width%3D%222.5%22/%3E%3Cpath%20d%3D%22M40%2032%20H54%22%20stroke%3D%22%237a4a12%22%20stroke-width%3D%222.5%22/%3E%3Ccircle%20cx%3D%2210%22%20cy%3D%2232%22%20r%3D%222.6%22%20fill%3D%22%237a4a12%22/%3E%3Ccircle%20cx%3D%2254%22%20cy%3D%2232%22%20r%3D%222.6%22%20fill%3D%22%237a4a12%22/%3E%3C/svg%3E" alt="Técnicas de programación estructurada" loading="lazy">
+                </div>
+                <div class="slot link-slot">
+                  <span class="slot-label">Enlace de referencia</span>
+                  <a href="https://www.google.com/search?q=T%C3%A9cnicas%20de%20programaci%C3%B3n%20estructurada" target="_blank" rel="noopener">Buscar sobre "Técnicas de programación estructurada" &rarr;</a>
+                </div>
+              </div>
+            </div>
+          </article>
+          <article class="card">
+            <div class="card-bar"><span class="idx">C2.05</span><span>Estructuras de control</span></div>
+            <div class="card-body">
+              <h4>Estructuras de control</h4>
+              <p class="info">Las estructuras de control determinan el orden en que se ejecutan las instrucciones de un script, mediante condicionales, bucles y bifurcaciones. Son la base de cualquier comportamiento dinámico en una página web.</p>
+              <p class="example">Un formulario usa una estructura condicional para mostrar un mensaje de error solo si el campo de correo está vacío.</p>
+              <p class="fact">Prácticamente cualquier lógica de programación, por compleja que sea, puede construirse combinando solo tres tipos de estructuras de control.</p>
+              <div class="card-media">
+                <div class="slot img-slot">
+                  <span class="slot-label">Imagen ilustrativa</span>
+                  <img src="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2264%22%20height%3D%2264%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20fill%3D%22%23fff3d6%22/%3E%3Cpath%20d%3D%22M10%2032%20H24%22%20stroke%3D%22%237a4a12%22%20stroke-width%3D%222.5%22/%3E%3Cpath%20d%3D%22M24%2032%20C24%2020%2C%2040%2020%2C%2040%2032%22%20fill%3D%22none%22%20stroke%3D%22%237a4a12%22%20stroke-width%3D%222.5%22/%3E%3Cpath%20d%3D%22M24%2032%20C24%2044%2C%2040%2044%2C%2040%2032%22%20fill%3D%22none%22%20stroke%3D%22%237a4a12%22%20stroke-width%3D%222.5%22/%3E%3Cpath%20d%3D%22M40%2032%20H54%22%20stroke%3D%22%237a4a12%22%20stroke-width%3D%222.5%22/%3E%3Ccircle%20cx%3D%2210%22%20cy%3D%2232%22%20r%3D%222.6%22%20fill%3D%22%237a4a12%22/%3E%3Ccircle%20cx%3D%2254%22%20cy%3D%2232%22%20r%3D%222.6%22%20fill%3D%22%237a4a12%22/%3E%3C/svg%3E" alt="Estructuras de control" loading="lazy">
+                </div>
+                <div class="slot link-slot">
+                  <span class="slot-label">Enlace de referencia</span>
+                  <a href="https://www.google.com/search?q=Estructuras%20de%20control" target="_blank" rel="noopener">Buscar sobre "Estructuras de control" &rarr;</a>
+                </div>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+      <section class="module">
+        <div class="module-head">
+          <span class="tag">RA3</span>
+          <h3>Accesibilidad y usabilidad</h3>
+        </div>
+        <div class="topics">
+          <article class="card">
+            <div class="card-bar"><span class="idx">C3.01</span><span>Técnicas de accesibilidad y usabilidad</span></div>
+            <div class="card-body">
+              <h4>Técnicas de accesibilidad y usabilidad</h4>
+              <p class="info">Estas técnicas buscan que una página pueda ser usada por el mayor número de personas posible, incluidas quienes usan lectores de pantalla o navegan solo con teclado. Aplicarlas desde el diseño evita rehacer el trabajo más adelante.</p>
+              <p class="example">Un formulario incluye etiquetas asociadas a cada campo para que un lector de pantalla anuncie correctamente qué información se solicita.</p>
+              <p class="fact">Muchas mejoras de accesibilidad, como el buen contraste de color, terminan beneficiando también a usuarios sin ninguna discapacidad.</p>
+              <div class="card-media">
+                <div class="slot img-slot">
+                  <span class="slot-label">Imagen ilustrativa</span>
+                  <img src="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2264%22%20height%3D%2264%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20fill%3D%22%23fff3d6%22/%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2218%22%20r%3D%228%22%20fill%3D%22none%22%20stroke%3D%22%237a4a12%22%20stroke-width%3D%222.5%22/%3E%3Cpath%20d%3D%22M16%2052%20C16%2038%2C%2048%2038%2C%2048%2052%22%20fill%3D%22none%22%20stroke%3D%22%237a4a12%22%20stroke-width%3D%222.5%22%20stroke-linecap%3D%22round%22/%3E%3C/svg%3E" alt="Técnicas de accesibilidad y usabilidad" loading="lazy">
+                </div>
+                <div class="slot link-slot">
+                  <span class="slot-label">Enlace de referencia</span>
+                  <a href="https://www.google.com/search?q=T%C3%A9cnicas%20de%20accesibilidad%20y%20usabilidad" target="_blank" rel="noopener">Buscar sobre "Técnicas de accesibilidad y usabilidad" &rarr;</a>
+                </div>
+              </div>
+            </div>
+          </article>
+          <article class="card">
+            <div class="card-bar"><span class="idx">C3.02</span><span>Accesibilidad Web</span></div>
+            <div class="card-body">
+              <h4>Accesibilidad Web</h4>
+              <p class="info">La accesibilidad web garantiza que personas con distintas capacidades puedan percibir, entender y utilizar un sitio, siguiendo pautas como las WCAG. No es un añadido opcional, sino un requisito cada vez más exigido.</p>
+              <p class="example">Una imagen decorativa se marca con un texto alternativo vacío para que un lector de pantalla la ignore sin generar ruido innecesario.</p>
+              <p class="fact">Las pautas WCAG definen niveles de conformidad A, AA y AAA, siendo AA el estándar más solicitado en proyectos públicos.</p>
+              <div class="card-media">
+                <div class="slot img-slot">
+                  <span class="slot-label">Imagen ilustrativa</span>
+                  <img src="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2264%22%20height%3D%2264%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20fill%3D%22%23fff3d6%22/%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2218%22%20r%3D%228%22%20fill%3D%22none%22%20stroke%3D%22%237a4a12%22%20stroke-width%3D%222.5%22/%3E%3Cpath%20d%3D%22M16%2052%20C16%2038%2C%2048%2038%2C%2048%2052%22%20fill%3D%22none%22%20stroke%3D%22%237a4a12%22%20stroke-width%3D%222.5%22%20stroke-linecap%3D%22round%22/%3E%3C/svg%3E" alt="Accesibilidad Web" loading="lazy">
+                </div>
+                <div class="slot link-slot">
+                  <span class="slot-label">Enlace de referencia</span>
+                  <a href="https://www.google.com/search?q=Accesibilidad%20Web" target="_blank" rel="noopener">Buscar sobre "Accesibilidad Web" &rarr;</a>
+                </div>
+              </div>
+            </div>
+          </article>
+          <article class="card">
+            <div class="card-bar"><span class="idx">C3.03</span><span>Usabilidad web</span></div>
+            <div class="card-body">
+              <h4>Usabilidad web</h4>
+              <p class="info">La usabilidad mide con qué facilidad y satisfacción una persona logra completar una tarea dentro de un sitio, desde encontrar un producto hasta enviar un formulario. Se evalúa mediante pruebas con usuarios reales, no solo con opiniones internas del equipo.</p>
+              <p class="example">Al observar a varios usuarios probando un menú, el equipo descubre que nadie encuentra el botón de búsqueda y decide moverlo.</p>
+              <p class="fact">Estudios clásicos de usabilidad muestran que los usuarios abandonan una tarea si no logran avanzar en los primeros segundos de intento.</p>
+              <div class="card-media">
+                <div class="slot img-slot">
+                  <span class="slot-label">Imagen ilustrativa</span>
+                  <img src="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2264%22%20height%3D%2264%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20fill%3D%22%23fff3d6%22/%3E%3Crect%20x%3D%2210%22%20y%3D%2212%22%20width%3D%2244%22%20height%3D%2240%22%20rx%3D%222%22%20fill%3D%22none%22%20stroke%3D%22%237a4a12%22%20stroke-width%3D%222.5%22/%3E%3Cline%20x1%3D%2210%22%20y1%3D%2222%22%20x2%3D%2254%22%20y2%3D%2222%22%20stroke%3D%22%237a4a12%22%20stroke-width%3D%222.5%22/%3E%3Ccircle%20cx%3D%2216%22%20cy%3D%2217%22%20r%3D%221.6%22%20fill%3D%22%237a4a12%22/%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2217%22%20r%3D%221.6%22%20fill%3D%22%237a4a12%22/%3E%3C/svg%3E" alt="Usabilidad web" loading="lazy">
+                </div>
+                <div class="slot link-slot">
+                  <span class="slot-label">Enlace de referencia</span>
+                  <a href="https://www.google.com/search?q=Usabilidad%20web" target="_blank" rel="noopener">Buscar sobre "Usabilidad web" &rarr;</a>
+                </div>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+    </div>
+
+  </div>
+  </div>
+</section>
+
+<div class="zone-divider">ENTORNO CLIENTE-SERVIDOR <span>&rarr;</span> ENTORNO SERVIDOR</div>
+
+<section class="zone zone-servidor" id="zona-servidor">
+  <div class="zone-bg">
+    <div class="bg-grid"></div>
+    <div class="bg-side-left"></div>
+    <div class="bg-side-right"></div>
+    <div class="bg-vignette"></div>
+  </div>
+  <div class="zone-content">
+  <div class="wrap">
+
+    <div class="hero">
+      <p class="prompt-line">MÓDULO 05 · MANTENIMIENTO Y PROGRAMACIÓN EN EL SERVIDOR<span class="cursor"></span></p>
+      <h1>Desarrollo de Contenidos Digitales en Entorno Servidor</h1>
+      <p>Del hardware de un servidor a los servicios distribuidos: procesadores, memoria y discos, el proceso de desarrollo de software, la programación orientada a objetos, el acceso a bases de datos y los lenguajes de marcado extendido que permiten a los sistemas comunicarse entre sí.</p>
+    </div>
+
+    <div class="unit-box-holder">
+      <div class="unit-box">
+        <span class="eyebrow">NOMBRE DE LA UNIDAD</span>
+        <h2>Desarrollo de Contenidos Digitales en Entorno Servidor</h2>
+      </div>
+    </div>
+
+    <div class="page-nav">
+      <a href="index.html" class="nav-btn">Publicación de contenidos en plataformas digitales</a>
+      <a href="pagina2.html" class="nav-btn">Mantenimiento de plataforma Informática</a>
+      <a href="pagina3.html" class="nav-btn">Diseño de Sistemas Informáticos</a>
+      <a href="pagina4.html" class="nav-btn">Modelado de base de datos</a>
+      <a href="pagina5.html" class="nav-btn active">Contenidos Digitales · Entorno Servidor</a>
+    </div>
+
+    <div id="modules-servidor">
+      <section class="module">
+        <div class="module-head">
+          <span class="tag">RA1</span>
+          <h3>Conceptos de ordenadores y servidores</h3>
+        </div>
+        <div class="topics">
+          <article class="card">
+            <div class="card-bar"><span class="idx">S1.01</span><span>Conceptos de ordenadores y servidores de propósito general</span></div>
+            <div class="card-body">
+              <h4>Conceptos de ordenadores y servidores de propósito general</h4>
+              <p class="info">Un servidor de propósito general ejecuta múltiples servicios simultáneos —web, correo, archivos— sobre un mismo hardware, a diferencia de un equipo dedicado a una sola tarea. Comprender su arquitectura básica es el punto de partida para administrarlo con criterio.</p>
+              <p class="example">Una pequeña empresa aloja su página web y su servidor de correo en la misma máquina física para reducir costes.</p>
+              <p class="fact">Un mismo servidor físico puede repartirse en varias máquinas virtuales, cada una funcionando como si fuera un equipo independiente.</p>
+              <div class="card-media">
+                <div class="slot img-slot">
+                  <span class="slot-label">Imagen ilustrativa</span>
+                  <img src="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2264%22%20height%3D%2264%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20fill%3D%22%23fbdcea%22/%3E%3Crect%20x%3D%2210%22%20y%3D%2212%22%20width%3D%2244%22%20height%3D%2214%22%20rx%3D%222%22%20fill%3D%22none%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222.5%22/%3E%3Crect%20x%3D%2210%22%20y%3D%2230%22%20width%3D%2244%22%20height%3D%2214%22%20rx%3D%222%22%20fill%3D%22none%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222.5%22/%3E%3Ccircle%20cx%3D%2218%22%20cy%3D%2219%22%20r%3D%221.8%22%20fill%3D%22%239c1856%22/%3E%3Ccircle%20cx%3D%2218%22%20cy%3D%2237%22%20r%3D%221.8%22%20fill%3D%22%239c1856%22/%3E%3Cline%20x1%3D%2226%22%20y1%3D%2219%22%20x2%3D%2246%22%20y2%3D%2219%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222%22/%3E%3Cline%20x1%3D%2226%22%20y1%3D%2237%22%20x2%3D%2246%22%20y2%3D%2237%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222%22/%3E%3C/svg%3E" alt="Conceptos de ordenadores y servidores de propósito general" loading="lazy">
+                </div>
+                <div class="slot link-slot">
+                  <span class="slot-label">Enlace de referencia</span>
+                  <a href="https://www.google.com/search?q=Conceptos%20de%20ordenadores%20y%20servidores%20de%20prop%C3%B3sito%20general" target="_blank" rel="noopener">Buscar sobre "Conceptos de ordenadores y servidores de propósito general" &rarr;</a>
+                </div>
+              </div>
+            </div>
+          </article>
+          <article class="card">
+            <div class="card-bar"><span class="idx">S1.02</span><span>Procesadores: familias y tipos de procesadores</span></div>
+            <div class="card-body">
+              <h4>Procesadores: familias y tipos de procesadores</h4>
+              <p class="info">El procesador ejecuta las instrucciones del sistema y su arquitectura, número de núcleos y frecuencia determinan cuántas tareas puede atender a la vez. Las familias más comunes en servidores son x86-64 y, cada vez más, ARM.</p>
+              <p class="example">Un centro de datos migra parte de sus servidores a procesadores ARM para reducir el consumo eléctrico sin perder rendimiento.</p>
+              <p class="fact">Los procesadores de servidor suelen priorizar el número de núcleos sobre la velocidad de cada uno, al contrario que los de uso doméstico.</p>
+              <div class="card-media">
+                <div class="slot img-slot">
+                  <span class="slot-label">Imagen ilustrativa</span>
+                  <img src="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2264%22%20height%3D%2264%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20fill%3D%22%23fbdcea%22/%3E%3Crect%20x%3D%2218%22%20y%3D%2218%22%20width%3D%2228%22%20height%3D%2228%22%20rx%3D%222%22%20fill%3D%22none%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222.5%22/%3E%3Cline%20x1%3D%2224%22%20y1%3D%2210%22%20x2%3D%2224%22%20y2%3D%2218%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222%22/%3E%3Cline%20x1%3D%2232%22%20y1%3D%2210%22%20x2%3D%2232%22%20y2%3D%2218%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222%22/%3E%3Cline%20x1%3D%2240%22%20y1%3D%2210%22%20x2%3D%2240%22%20y2%3D%2218%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222%22/%3E%3Cline%20x1%3D%2224%22%20y1%3D%2246%22%20x2%3D%2224%22%20y2%3D%2254%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222%22/%3E%3Cline%20x1%3D%2232%22%20y1%3D%2246%22%20x2%3D%2232%22%20y2%3D%2254%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222%22/%3E%3Cline%20x1%3D%2240%22%20y1%3D%2246%22%20x2%3D%2240%22%20y2%3D%2254%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222%22/%3E%3C/svg%3E" alt="Procesadores: familias y tipos de procesadores" loading="lazy">
+                </div>
+                <div class="slot link-slot">
+                  <span class="slot-label">Enlace de referencia</span>
+                  <a href="https://www.google.com/search?q=Procesadores%3A%20familias%20y%20tipos%20de%20procesadores" target="_blank" rel="noopener">Buscar sobre "Procesadores: familias y tipos de procesadores" &rarr;</a>
+                </div>
+              </div>
+            </div>
+          </article>
+          <article class="card">
+            <div class="card-bar"><span class="idx">S1.03</span><span>Memoria de acceso aleatorio (RAM)</span></div>
+            <div class="card-body">
+              <h4>Memoria de acceso aleatorio (RAM)</h4>
+              <p class="info">La RAM almacena temporalmente los datos y procesos activos, permitiendo un acceso mucho más rápido que el de un disco. En un servidor, la cantidad de RAM disponible limita directamente cuántos usuarios puede atender sin ralentizarse.</p>
+              <p class="example">Un servidor web empieza a responder con lentitud cuando la memoria RAM se satura por demasiadas conexiones simultáneas.</p>
+              <p class="fact">La memoria RAM pierde todo su contenido en cuanto el equipo se apaga, a diferencia del almacenamiento en disco.</p>
+              <div class="card-media">
+                <div class="slot img-slot">
+                  <span class="slot-label">Imagen ilustrativa</span>
+                  <img src="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2264%22%20height%3D%2264%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20fill%3D%22%23fbdcea%22/%3E%3Crect%20x%3D%2218%22%20y%3D%2218%22%20width%3D%2228%22%20height%3D%2228%22%20rx%3D%222%22%20fill%3D%22none%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222.5%22/%3E%3Cline%20x1%3D%2224%22%20y1%3D%2210%22%20x2%3D%2224%22%20y2%3D%2218%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222%22/%3E%3Cline%20x1%3D%2232%22%20y1%3D%2210%22%20x2%3D%2232%22%20y2%3D%2218%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222%22/%3E%3Cline%20x1%3D%2240%22%20y1%3D%2210%22%20x2%3D%2240%22%20y2%3D%2218%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222%22/%3E%3Cline%20x1%3D%2224%22%20y1%3D%2246%22%20x2%3D%2224%22%20y2%3D%2254%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222%22/%3E%3Cline%20x1%3D%2232%22%20y1%3D%2246%22%20x2%3D%2232%22%20y2%3D%2254%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222%22/%3E%3Cline%20x1%3D%2240%22%20y1%3D%2246%22%20x2%3D%2240%22%20y2%3D%2254%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222%22/%3E%3C/svg%3E" alt="Memoria de acceso aleatorio (RAM)" loading="lazy">
+                </div>
+                <div class="slot link-slot">
+                  <span class="slot-label">Enlace de referencia</span>
+                  <a href="https://www.google.com/search?q=Memoria%20de%20acceso%20aleatorio%20%28RAM%29" target="_blank" rel="noopener">Buscar sobre "Memoria de acceso aleatorio (RAM)" &rarr;</a>
+                </div>
+              </div>
+            </div>
+          </article>
+          <article class="card">
+            <div class="card-bar"><span class="idx">S1.04</span><span>Interfaces de entrada/salida</span></div>
+            <div class="card-body">
+              <h4>Interfaces de entrada/salida</h4>
+              <p class="info">Las interfaces de entrada/salida permiten que el procesador se comunique con discos, redes y otros dispositivos periféricos. Su velocidad y ancho de banda pueden convertirse en un cuello de botella incluso con un procesador potente.</p>
+              <p class="example">Un servidor con un procesador muy rápido sigue siendo lento porque su interfaz de red no soporta el volumen de tráfico recibido.</p>
+              <p class="fact">Una interfaz de entrada/salida mal dimensionada puede limitar el rendimiento total del sistema más que el propio procesador.</p>
+              <div class="card-media">
+                <div class="slot img-slot">
+                  <span class="slot-label">Imagen ilustrativa</span>
+                  <img src="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2264%22%20height%3D%2264%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20fill%3D%22%23fbdcea%22/%3E%3Crect%20x%3D%2210%22%20y%3D%2212%22%20width%3D%2244%22%20height%3D%2214%22%20rx%3D%222%22%20fill%3D%22none%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222.5%22/%3E%3Crect%20x%3D%2210%22%20y%3D%2230%22%20width%3D%2244%22%20height%3D%2214%22%20rx%3D%222%22%20fill%3D%22none%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222.5%22/%3E%3Ccircle%20cx%3D%2218%22%20cy%3D%2219%22%20r%3D%221.8%22%20fill%3D%22%239c1856%22/%3E%3Ccircle%20cx%3D%2218%22%20cy%3D%2237%22%20r%3D%221.8%22%20fill%3D%22%239c1856%22/%3E%3Cline%20x1%3D%2226%22%20y1%3D%2219%22%20x2%3D%2246%22%20y2%3D%2219%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222%22/%3E%3Cline%20x1%3D%2226%22%20y1%3D%2237%22%20x2%3D%2246%22%20y2%3D%2237%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222%22/%3E%3C/svg%3E" alt="Interfaces de entrada/salida" loading="lazy">
+                </div>
+                <div class="slot link-slot">
+                  <span class="slot-label">Enlace de referencia</span>
+                  <a href="https://www.google.com/search?q=Interfaces%20de%20entrada/salida" target="_blank" rel="noopener">Buscar sobre "Interfaces de entrada/salida" &rarr;</a>
+                </div>
+              </div>
+            </div>
+          </article>
+          <article class="card">
+            <div class="card-bar"><span class="idx">S1.05</span><span>Discos</span></div>
+            <div class="card-body">
+              <h4>Discos</h4>
+              <p class="info">Los discos almacenan de forma permanente el sistema operativo, las aplicaciones y los datos del servidor, e influyen directamente en la velocidad de arranque y de acceso a la información. Los discos de estado sólido han desplazado en gran medida a los mecánicos en entornos de servidor.</p>
+              <p class="example">Migrar la base de datos de un disco mecánico a uno de estado sólido reduce a la mitad el tiempo de respuesta de las consultas.</p>
+              <p class="fact">Un disco de estado sólido no tiene partes móviles, lo que reduce tanto el riesgo de fallo como el consumo energético.</p>
+              <div class="card-media">
+                <div class="slot img-slot">
+                  <span class="slot-label">Imagen ilustrativa</span>
+                  <img src="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2264%22%20height%3D%2264%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20fill%3D%22%23fbdcea%22/%3E%3Crect%20x%3D%2210%22%20y%3D%2212%22%20width%3D%2244%22%20height%3D%2214%22%20rx%3D%222%22%20fill%3D%22none%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222.5%22/%3E%3Crect%20x%3D%2210%22%20y%3D%2230%22%20width%3D%2244%22%20height%3D%2214%22%20rx%3D%222%22%20fill%3D%22none%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222.5%22/%3E%3Ccircle%20cx%3D%2218%22%20cy%3D%2219%22%20r%3D%221.8%22%20fill%3D%22%239c1856%22/%3E%3Ccircle%20cx%3D%2218%22%20cy%3D%2237%22%20r%3D%221.8%22%20fill%3D%22%239c1856%22/%3E%3Cline%20x1%3D%2226%22%20y1%3D%2219%22%20x2%3D%2246%22%20y2%3D%2219%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222%22/%3E%3Cline%20x1%3D%2226%22%20y1%3D%2237%22%20x2%3D%2246%22%20y2%3D%2237%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222%22/%3E%3C/svg%3E" alt="Discos" loading="lazy">
+                </div>
+                <div class="slot link-slot">
+                  <span class="slot-label">Enlace de referencia</span>
+                  <a href="https://www.google.com/search?q=Discos" target="_blank" rel="noopener">Buscar sobre "Discos" &rarr;</a>
+                </div>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+      <section class="module">
+        <div class="module-head">
+          <span class="tag">RA2</span>
+          <h3>Proceso de desarrollo y programación orientada a objetos</h3>
+        </div>
+        <div class="topics">
+          <article class="card">
+            <div class="card-bar"><span class="idx">S2.01</span><span>El proceso de desarrollo de software</span></div>
+            <div class="card-body">
+              <h4>El proceso de desarrollo de software</h4>
+              <p class="info">El proceso de desarrollo organiza las fases de análisis, diseño, construcción, pruebas y mantenimiento de una aplicación, evitando que el trabajo avance de forma desordenada. Seguir un proceso definido facilita estimar tiempos y detectar problemas antes.</p>
+              <p class="example">Un equipo define primero los requisitos del sistema y solo después empieza a programar, evitando reescribir el código varias veces.</p>
+              <p class="fact">Saltarse la fase de análisis suele ser la causa más común de que un proyecto de software se retrase.</p>
+              <div class="card-media">
+                <div class="slot img-slot">
+                  <span class="slot-label">Imagen ilustrativa</span>
+                  <img src="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2264%22%20height%3D%2264%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20fill%3D%22%23fbdcea%22/%3E%3Cpath%20d%3D%22M10%2032%20H24%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222.5%22/%3E%3Cpath%20d%3D%22M24%2032%20C24%2020%2C%2040%2020%2C%2040%2032%22%20fill%3D%22none%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222.5%22/%3E%3Cpath%20d%3D%22M24%2032%20C24%2044%2C%2040%2044%2C%2040%2032%22%20fill%3D%22none%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222.5%22/%3E%3Cpath%20d%3D%22M40%2032%20H54%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222.5%22/%3E%3Ccircle%20cx%3D%2210%22%20cy%3D%2232%22%20r%3D%222.6%22%20fill%3D%22%239c1856%22/%3E%3Ccircle%20cx%3D%2254%22%20cy%3D%2232%22%20r%3D%222.6%22%20fill%3D%22%239c1856%22/%3E%3C/svg%3E" alt="El proceso de desarrollo de software" loading="lazy">
+                </div>
+                <div class="slot link-slot">
+                  <span class="slot-label">Enlace de referencia</span>
+                  <a href="https://www.google.com/search?q=El%20proceso%20de%20desarrollo%20de%20software" target="_blank" rel="noopener">Buscar sobre "El proceso de desarrollo de software" &rarr;</a>
+                </div>
+              </div>
+            </div>
+          </article>
+          <article class="card">
+            <div class="card-bar"><span class="idx">S2.02</span><span>Gestión de los proyectos de desarrollo del software</span></div>
+            <div class="card-body">
+              <h4>Gestión de los proyectos de desarrollo del software</h4>
+              <p class="info">Gestionar un proyecto de software implica planificar tareas, asignar responsables y controlar plazos y recursos a lo largo de todo el desarrollo. Herramientas de seguimiento visual ayudan a que el equipo comparta una misma visión del avance.</p>
+              <p class="example">Un equipo usa un tablero con columnas de pendiente, en progreso y terminado para visualizar el estado real del proyecto.</p>
+              <p class="fact">Muchos proyectos fracasan no por falta de habilidad técnica, sino por una planificación de tiempos poco realista.</p>
+              <div class="card-media">
+                <div class="slot img-slot">
+                  <span class="slot-label">Imagen ilustrativa</span>
+                  <img src="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2264%22%20height%3D%2264%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20fill%3D%22%23fbdcea%22/%3E%3Cline%20x1%3D%2222%22%20y1%3D%2216%22%20x2%3D%2254%22%20y2%3D%2216%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222.5%22/%3E%3Cline%20x1%3D%2222%22%20y1%3D%2232%22%20x2%3D%2254%22%20y2%3D%2232%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222.5%22/%3E%3Cline%20x1%3D%2222%22%20y1%3D%2248%22%20x2%3D%2254%22%20y2%3D%2248%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222.5%22/%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2216%22%20r%3D%222.6%22%20fill%3D%22%239c1856%22/%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2232%22%20r%3D%222.6%22%20fill%3D%22%239c1856%22/%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2248%22%20r%3D%222.6%22%20fill%3D%22%239c1856%22/%3E%3C/svg%3E" alt="Gestión de los proyectos de desarrollo del software" loading="lazy">
+                </div>
+                <div class="slot link-slot">
+                  <span class="slot-label">Enlace de referencia</span>
+                  <a href="https://www.google.com/search?q=Gesti%C3%B3n%20de%20los%20proyectos%20de%20desarrollo%20del%20software" target="_blank" rel="noopener">Buscar sobre "Gestión de los proyectos de desarrollo del software" &rarr;</a>
+                </div>
+              </div>
+            </div>
+          </article>
+          <article class="card">
+            <div class="card-bar"><span class="idx">S2.03</span><span>Herramientas y estándares de desarrollo del software</span></div>
+            <div class="card-body">
+              <h4>Herramientas y estándares de desarrollo del software</h4>
+              <p class="info">Los estándares de desarrollo definen convenciones de código, documentación y control de versiones que todo el equipo sigue, facilitando que cualquier persona entienda el trabajo de otra. Las herramientas de control de versiones son hoy una base indispensable.</p>
+              <p class="example">Un equipo adopta una convención de nombres para sus funciones que hace innecesario explicar qué hace cada una en comentarios adicionales.</p>
+              <p class="fact">El uso de un sistema de control de versiones permite recuperar cualquier estado anterior del código en cuestión de segundos.</p>
+              <div class="card-media">
+                <div class="slot img-slot">
+                  <span class="slot-label">Imagen ilustrativa</span>
+                  <img src="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2264%22%20height%3D%2264%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20fill%3D%22%23fbdcea%22/%3E%3Cpath%20d%3D%22M20%2016%20L8%2032%20L20%2048%22%20fill%3D%22none%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3Cpath%20d%3D%22M44%2016%20L56%2032%20L44%2048%22%20fill%3D%22none%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3Cline%20x1%3D%2235%22%20y1%3D%2214%22%20x2%3D%2229%22%20y2%3D%2250%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222%22/%3E%3C/svg%3E" alt="Herramientas y estándares de desarrollo del software" loading="lazy">
+                </div>
+                <div class="slot link-slot">
+                  <span class="slot-label">Enlace de referencia</span>
+                  <a href="https://www.google.com/search?q=Herramientas%20y%20est%C3%A1ndares%20de%20desarrollo%20del%20software" target="_blank" rel="noopener">Buscar sobre "Herramientas y estándares de desarrollo del software" &rarr;</a>
+                </div>
+              </div>
+            </div>
+          </article>
+          <article class="card">
+            <div class="card-bar"><span class="idx">S2.04</span><span>Calidad del software</span></div>
+            <div class="card-body">
+              <h4>Calidad del software</h4>
+              <p class="info">La calidad del software se mide en atributos como fiabilidad, mantenibilidad y rendimiento, no solo en la ausencia de errores visibles. Garantizarla exige revisiones y pruebas a lo largo de todo el ciclo de vida, no únicamente al final.</p>
+              <p class="example">Un equipo revisa el código de un compañero antes de integrarlo y detecta un error que las pruebas automáticas no habían cubierto.</p>
+              <p class="fact">Corregir un defecto detectado en producción puede costar muchas veces más que corregirlo durante la fase de diseño.</p>
+              <div class="card-media">
+                <div class="slot img-slot">
+                  <span class="slot-label">Imagen ilustrativa</span>
+                  <img src="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2264%22%20height%3D%2264%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20fill%3D%22%23fbdcea%22/%3E%3Cpath%20d%3D%22M10%2032%20H24%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222.5%22/%3E%3Cpath%20d%3D%22M24%2032%20C24%2020%2C%2040%2020%2C%2040%2032%22%20fill%3D%22none%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222.5%22/%3E%3Cpath%20d%3D%22M24%2032%20C24%2044%2C%2040%2044%2C%2040%2032%22%20fill%3D%22none%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222.5%22/%3E%3Cpath%20d%3D%22M40%2032%20H54%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222.5%22/%3E%3Ccircle%20cx%3D%2210%22%20cy%3D%2232%22%20r%3D%222.6%22%20fill%3D%22%239c1856%22/%3E%3Ccircle%20cx%3D%2254%22%20cy%3D%2232%22%20r%3D%222.6%22%20fill%3D%22%239c1856%22/%3E%3C/svg%3E" alt="Calidad del software" loading="lazy">
+                </div>
+                <div class="slot link-slot">
+                  <span class="slot-label">Enlace de referencia</span>
+                  <a href="https://www.google.com/search?q=Calidad%20del%20software" target="_blank" rel="noopener">Buscar sobre "Calidad del software" &rarr;</a>
+                </div>
+              </div>
+            </div>
+          </article>
+          <article class="card">
+            <div class="card-bar"><span class="idx">S2.05</span><span>Características de la programación orientada a objetos (POO)</span></div>
+            <div class="card-body">
+              <h4>Características de la programación orientada a objetos (POO)</h4>
+              <p class="info">La programación orientada a objetos organiza el código en torno a objetos que combinan datos y comportamiento, facilitando la reutilización mediante herencia y la ocultación de detalles internos mediante encapsulamiento. Este enfoque simplifica el mantenimiento de sistemas grandes.</p>
+              <p class="example">Una clase «Usuario» se reutiliza mediante herencia para crear una clase «Administrador» que añade permisos adicionales sin duplicar código.</p>
+              <p class="fact">El concepto de objeto en programación surgió en los años sesenta con el lenguaje Simula, pensado originalmente para simulaciones.</p>
+              <div class="card-media">
+                <div class="slot img-slot">
+                  <span class="slot-label">Imagen ilustrativa</span>
+                  <img src="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2264%22%20height%3D%2264%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20fill%3D%22%23fbdcea%22/%3E%3Crect%20x%3D%2218%22%20y%3D%2218%22%20width%3D%2228%22%20height%3D%2228%22%20rx%3D%222%22%20fill%3D%22none%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222.5%22/%3E%3Cline%20x1%3D%2224%22%20y1%3D%2210%22%20x2%3D%2224%22%20y2%3D%2218%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222%22/%3E%3Cline%20x1%3D%2232%22%20y1%3D%2210%22%20x2%3D%2232%22%20y2%3D%2218%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222%22/%3E%3Cline%20x1%3D%2240%22%20y1%3D%2210%22%20x2%3D%2240%22%20y2%3D%2218%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222%22/%3E%3Cline%20x1%3D%2224%22%20y1%3D%2246%22%20x2%3D%2224%22%20y2%3D%2254%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222%22/%3E%3Cline%20x1%3D%2232%22%20y1%3D%2246%22%20x2%3D%2232%22%20y2%3D%2254%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222%22/%3E%3Cline%20x1%3D%2240%22%20y1%3D%2246%22%20x2%3D%2240%22%20y2%3D%2254%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222%22/%3E%3C/svg%3E" alt="Características de la programación orientada a objetos (POO)" loading="lazy">
+                </div>
+                <div class="slot link-slot">
+                  <span class="slot-label">Enlace de referencia</span>
+                  <a href="https://www.google.com/search?q=Caracter%C3%ADsticas%20de%20la%20programaci%C3%B3n%20orientada%20a%20objetos%20%28POO%29" target="_blank" rel="noopener">Buscar sobre "Características de la programación orientada a objetos (POO)" &rarr;</a>
+                </div>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+      <section class="module">
+        <div class="module-head">
+          <span class="tag">RA3</span>
+          <h3>Bases de datos y lenguajes de marcado extendido</h3>
+        </div>
+        <div class="topics">
+          <article class="card">
+            <div class="card-bar"><span class="idx">S3.01</span><span>Acceso a bases de datos</span></div>
+            <div class="card-body">
+              <h4>Acceso a bases de datos</h4>
+              <p class="info">El acceso a bases de datos desde un componente de servidor permite leer y modificar información de forma persistente, normalmente mediante una conexión gestionada y consultas parametrizadas. Una conexión mal cerrada puede agotar los recursos disponibles del servidor.</p>
+              <p class="example">Un componente de servidor abre una conexión a la base de datos, ejecuta una consulta y la cierra antes de enviar la respuesta al navegador.</p>
+              <p class="fact">Usar consultas parametrizadas en lugar de concatenar texto directamente evita una de las vulnerabilidades más comunes en aplicaciones web.</p>
+              <div class="card-media">
+                <div class="slot img-slot">
+                  <span class="slot-label">Imagen ilustrativa</span>
+                  <img src="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2264%22%20height%3D%2264%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20fill%3D%22%23fbdcea%22/%3E%3Crect%20x%3D%2210%22%20y%3D%2212%22%20width%3D%2244%22%20height%3D%2240%22%20rx%3D%221%22%20fill%3D%22none%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222.5%22/%3E%3Cline%20x1%3D%2210%22%20y1%3D%2226%22%20x2%3D%2254%22%20y2%3D%2226%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222%22/%3E%3Cline%20x1%3D%2210%22%20y1%3D%2239%22%20x2%3D%2254%22%20y2%3D%2239%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222%22/%3E%3Cline%20x1%3D%2232%22%20y1%3D%2212%22%20x2%3D%2232%22%20y2%3D%2252%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222%22/%3E%3C/svg%3E" alt="Acceso a bases de datos" loading="lazy">
+                </div>
+                <div class="slot link-slot">
+                  <span class="slot-label">Enlace de referencia</span>
+                  <a href="https://www.google.com/search?q=Acceso%20a%20bases%20de%20datos" target="_blank" rel="noopener">Buscar sobre "Acceso a bases de datos" &rarr;</a>
+                </div>
+              </div>
+            </div>
+          </article>
+          <article class="card">
+            <div class="card-bar"><span class="idx">S3.02</span><span>Integración de sentencias SQL en los componentes software</span></div>
+            <div class="card-body">
+              <h4>Integración de sentencias SQL en los componentes software</h4>
+              <p class="info">Integrar SQL dentro de un componente software implica combinar el lenguaje de programación del servidor con consultas a la base de datos, manteniendo el código legible y seguro. Separar esta lógica en funciones reutilizables facilita su mantenimiento.</p>
+              <p class="example">Una función independiente centraliza todas las consultas relacionadas con usuarios, evitando repetir la misma sentencia SQL en varios archivos.</p>
+              <p class="fact">Mezclar sentencias SQL directamente en la interfaz de usuario suele dificultar tanto la seguridad como el mantenimiento del sistema.</p>
+              <div class="card-media">
+                <div class="slot img-slot">
+                  <span class="slot-label">Imagen ilustrativa</span>
+                  <img src="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2264%22%20height%3D%2264%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20fill%3D%22%23fbdcea%22/%3E%3Crect%20x%3D%2210%22%20y%3D%2212%22%20width%3D%2244%22%20height%3D%2240%22%20rx%3D%221%22%20fill%3D%22none%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222.5%22/%3E%3Cline%20x1%3D%2210%22%20y1%3D%2226%22%20x2%3D%2254%22%20y2%3D%2226%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222%22/%3E%3Cline%20x1%3D%2210%22%20y1%3D%2239%22%20x2%3D%2254%22%20y2%3D%2239%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222%22/%3E%3Cline%20x1%3D%2232%22%20y1%3D%2212%22%20x2%3D%2232%22%20y2%3D%2252%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222%22/%3E%3C/svg%3E" alt="Integración de sentencias SQL en los componentes software" loading="lazy">
+                </div>
+                <div class="slot link-slot">
+                  <span class="slot-label">Enlace de referencia</span>
+                  <a href="https://www.google.com/search?q=Integraci%C3%B3n%20de%20sentencias%20SQL%20en%20los%20componentes%20software" target="_blank" rel="noopener">Buscar sobre "Integración de sentencias SQL en los componentes software" &rarr;</a>
+                </div>
+              </div>
+            </div>
+          </article>
+          <article class="card">
+            <div class="card-bar"><span class="idx">S3.03</span><span>Características adicionales del lenguaje de programación de servidor</span></div>
+            <div class="card-body">
+              <h4>Características adicionales del lenguaje de programación de servidor</h4>
+              <p class="info">Además de la sintaxis básica, un lenguaje de servidor ofrece funciones para gestionar sesiones, archivos y errores, ampliando lo que un script puede hacer más allá de generar simple texto. Conocer estas características evita reinventar soluciones ya resueltas por el lenguaje.</p>
+              <p class="example">Un lenguaje de servidor incluye una función nativa para gestionar sesiones, evitando que el desarrollador tenga que programarla desde cero.</p>
+              <p class="fact">La mayoría de los lenguajes de servidor modernos incluyen bibliotecas estándar amplias que cubren tareas comunes sin instalar nada adicional.</p>
+              <div class="card-media">
+                <div class="slot img-slot">
+                  <span class="slot-label">Imagen ilustrativa</span>
+                  <img src="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2264%22%20height%3D%2264%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20fill%3D%22%23fbdcea%22/%3E%3Crect%20x%3D%2210%22%20y%3D%2212%22%20width%3D%2244%22%20height%3D%2214%22%20rx%3D%222%22%20fill%3D%22none%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222.5%22/%3E%3Crect%20x%3D%2210%22%20y%3D%2230%22%20width%3D%2244%22%20height%3D%2214%22%20rx%3D%222%22%20fill%3D%22none%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222.5%22/%3E%3Ccircle%20cx%3D%2218%22%20cy%3D%2219%22%20r%3D%221.8%22%20fill%3D%22%239c1856%22/%3E%3Ccircle%20cx%3D%2218%22%20cy%3D%2237%22%20r%3D%221.8%22%20fill%3D%22%239c1856%22/%3E%3Cline%20x1%3D%2226%22%20y1%3D%2219%22%20x2%3D%2246%22%20y2%3D%2219%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222%22/%3E%3Cline%20x1%3D%2226%22%20y1%3D%2237%22%20x2%3D%2246%22%20y2%3D%2237%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222%22/%3E%3C/svg%3E" alt="Características adicionales del lenguaje de programación de servidor" loading="lazy">
+                </div>
+                <div class="slot link-slot">
+                  <span class="slot-label">Enlace de referencia</span>
+                  <a href="https://www.google.com/search?q=Caracter%C3%ADsticas%20adicionales%20del%20lenguaje%20de%20programaci%C3%B3n%20de%20servidor" target="_blank" rel="noopener">Buscar sobre "Características adicionales del lenguaje de programación de servidor" &rarr;</a>
+                </div>
+              </div>
+            </div>
+          </article>
+          <article class="card">
+            <div class="card-bar"><span class="idx">S3.04</span><span>Lenguajes estándares de marcado extendido (XML)</span></div>
+            <div class="card-body">
+              <h4>Lenguajes estándares de marcado extendido (XML)</h4>
+              <p class="info">XML permite describir datos estructurados de forma independiente de cualquier aplicación concreta, usando etiquetas definidas por quien crea el documento. Su flexibilidad lo convirtió durante años en el formato de referencia para el intercambio de información entre sistemas.</p>
+              <p class="example">Dos sistemas de facturación distintos intercambian información usando un mismo formato XML acordado previamente entre ambas empresas.</p>
+              <p class="fact">A diferencia de HTML, en XML no existen etiquetas predefinidas: cada documento puede definir su propio vocabulario.</p>
+              <div class="card-media">
+                <div class="slot img-slot">
+                  <span class="slot-label">Imagen ilustrativa</span>
+                  <img src="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2264%22%20height%3D%2264%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20fill%3D%22%23fbdcea%22/%3E%3Cpath%20d%3D%22M20%2016%20L8%2032%20L20%2048%22%20fill%3D%22none%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3Cpath%20d%3D%22M44%2016%20L56%2032%20L44%2048%22%20fill%3D%22none%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3Cline%20x1%3D%2235%22%20y1%3D%2214%22%20x2%3D%2229%22%20y2%3D%2250%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222%22/%3E%3C/svg%3E" alt="Lenguajes estándares de marcado extendido (XML)" loading="lazy">
+                </div>
+                <div class="slot link-slot">
+                  <span class="slot-label">Enlace de referencia</span>
+                  <a href="https://www.google.com/search?q=Lenguajes%20est%C3%A1ndares%20de%20marcado%20extendido%20%28XML%29" target="_blank" rel="noopener">Buscar sobre "Lenguajes estándares de marcado extendido (XML)" &rarr;</a>
+                </div>
+              </div>
+            </div>
+          </article>
+          <article class="card">
+            <div class="card-bar"><span class="idx">S3.05</span><span>Historia de los lenguajes estándares de marcado extendido</span></div>
+            <div class="card-body">
+              <h4>Historia de los lenguajes estándares de marcado extendido</h4>
+              <p class="info">XML surgió a finales de los años noventa como una simplificación de SGML, buscando un formato más fácil de procesar por máquinas sin perder la flexibilidad de describir cualquier tipo de dato. Su adopción impulsó estándares posteriores como los servicios web basados en XML.</p>
+              <p class="example">Antes de la llegada de XML, muchos sistemas usaban formatos propietarios incompatibles entre sí para intercambiar datos.</p>
+              <p class="fact">El World Wide Web Consortium publicó la primera recomendación oficial de XML en 1998.</p>
+              <div class="card-media">
+                <div class="slot img-slot">
+                  <span class="slot-label">Imagen ilustrativa</span>
+                  <img src="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2264%22%20height%3D%2264%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20fill%3D%22%23fbdcea%22/%3E%3Cpath%20d%3D%22M20%2016%20L8%2032%20L20%2048%22%20fill%3D%22none%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3Cpath%20d%3D%22M44%2016%20L56%2032%20L44%2048%22%20fill%3D%22none%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3Cline%20x1%3D%2235%22%20y1%3D%2214%22%20x2%3D%2229%22%20y2%3D%2250%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222%22/%3E%3C/svg%3E" alt="Historia de los lenguajes estándares de marcado extendido" loading="lazy">
+                </div>
+                <div class="slot link-slot">
+                  <span class="slot-label">Enlace de referencia</span>
+                  <a href="https://www.google.com/search?q=Historia%20de%20los%20lenguajes%20est%C3%A1ndares%20de%20marcado%20extendido" target="_blank" rel="noopener">Buscar sobre "Historia de los lenguajes estándares de marcado extendido" &rarr;</a>
+                </div>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+      <section class="module">
+        <div class="module-head">
+          <span class="tag">RA4</span>
+          <h3>Servicios distribuidos</h3>
+        </div>
+        <div class="topics">
+          <article class="card">
+            <div class="card-bar"><span class="idx">S4.01</span><span>Servicios distribuidos</span></div>
+            <div class="card-body">
+              <h4>Servicios distribuidos</h4>
+              <p class="info">Un servicio distribuido divide una aplicación en componentes que se ejecutan en distintos equipos conectados por red, colaborando como si fueran un único sistema. Este enfoque permite escalar y mantener cada parte de forma independiente.</p>
+              <p class="example">Un sistema de comercio electrónico separa el servicio de pagos del de inventario, permitiendo actualizar uno sin afectar al otro.</p>
+              <p class="fact">Diseñar bien los límites entre servicios distribuidos suele ser más determinante para el éxito del sistema que la tecnología elegida.</p>
+              <div class="card-media">
+                <div class="slot img-slot">
+                  <span class="slot-label">Imagen ilustrativa</span>
+                  <img src="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2264%22%20height%3D%2264%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20fill%3D%22%23fbdcea%22/%3E%3Crect%20x%3D%2210%22%20y%3D%2212%22%20width%3D%2244%22%20height%3D%2214%22%20rx%3D%222%22%20fill%3D%22none%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222.5%22/%3E%3Crect%20x%3D%2210%22%20y%3D%2230%22%20width%3D%2244%22%20height%3D%2214%22%20rx%3D%222%22%20fill%3D%22none%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222.5%22/%3E%3Ccircle%20cx%3D%2218%22%20cy%3D%2219%22%20r%3D%221.8%22%20fill%3D%22%239c1856%22/%3E%3Ccircle%20cx%3D%2218%22%20cy%3D%2237%22%20r%3D%221.8%22%20fill%3D%22%239c1856%22/%3E%3Cline%20x1%3D%2226%22%20y1%3D%2219%22%20x2%3D%2246%22%20y2%3D%2219%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222%22/%3E%3Cline%20x1%3D%2226%22%20y1%3D%2237%22%20x2%3D%2246%22%20y2%3D%2237%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222%22/%3E%3C/svg%3E" alt="Servicios distribuidos" loading="lazy">
+                </div>
+                <div class="slot link-slot">
+                  <span class="slot-label">Enlace de referencia</span>
+                  <a href="https://www.google.com/search?q=Servicios%20distribuidos" target="_blank" rel="noopener">Buscar sobre "Servicios distribuidos" &rarr;</a>
+                </div>
+              </div>
+            </div>
+          </article>
+          <article class="card">
+            <div class="card-bar"><span class="idx">S4.02</span><span>Concepto de servicios distribuidos</span></div>
+            <div class="card-body">
+              <h4>Concepto de servicios distribuidos</h4>
+              <p class="info">El concepto de servicio distribuido se apoya en la idea de que distintos procesos pueden cooperar a través de una red sin conocer los detalles internos unos de otros, comunicándose mediante interfaces bien definidas. Esta separación reduce la dependencia entre las partes del sistema.</p>
+              <p class="example">Un servicio de autenticación puede reemplazarse por otro distinto sin que el resto de la aplicación necesite cambiar su código.</p>
+              <p class="fact">La independencia entre servicios permite que distintos equipos de trabajo desarrollen cada parte con tecnologías diferentes si es necesario.</p>
+              <div class="card-media">
+                <div class="slot img-slot">
+                  <span class="slot-label">Imagen ilustrativa</span>
+                  <img src="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2264%22%20height%3D%2264%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20fill%3D%22%23fbdcea%22/%3E%3Crect%20x%3D%2210%22%20y%3D%2212%22%20width%3D%2244%22%20height%3D%2214%22%20rx%3D%222%22%20fill%3D%22none%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222.5%22/%3E%3Crect%20x%3D%2210%22%20y%3D%2230%22%20width%3D%2244%22%20height%3D%2214%22%20rx%3D%222%22%20fill%3D%22none%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222.5%22/%3E%3Ccircle%20cx%3D%2218%22%20cy%3D%2219%22%20r%3D%221.8%22%20fill%3D%22%239c1856%22/%3E%3Ccircle%20cx%3D%2218%22%20cy%3D%2237%22%20r%3D%221.8%22%20fill%3D%22%239c1856%22/%3E%3Cline%20x1%3D%2226%22%20y1%3D%2219%22%20x2%3D%2246%22%20y2%3D%2219%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222%22/%3E%3Cline%20x1%3D%2226%22%20y1%3D%2237%22%20x2%3D%2246%22%20y2%3D%2237%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222%22/%3E%3C/svg%3E" alt="Concepto de servicios distribuidos" loading="lazy">
+                </div>
+                <div class="slot link-slot">
+                  <span class="slot-label">Enlace de referencia</span>
+                  <a href="https://www.google.com/search?q=Concepto%20de%20servicios%20distribuidos" target="_blank" rel="noopener">Buscar sobre "Concepto de servicios distribuidos" &rarr;</a>
+                </div>
+              </div>
+            </div>
+          </article>
+          <article class="card">
+            <div class="card-bar"><span class="idx">S4.03</span><span>Características de cliente y servidor de servicios distribuidos</span></div>
+            <div class="card-body">
+              <h4>Características de cliente y servidor de servicios distribuidos</h4>
+              <p class="info">En un servicio distribuido, el cliente solicita una acción y el servidor la ejecuta y responde, pudiendo intercambiar ambos roles según el diseño del sistema. Esta separación permite que cada parte evolucione con su propio ritmo de actualización.</p>
+              <p class="example">Una aplicación móvil actúa como cliente al pedir datos, pero también expone un pequeño servicio propio que otra aplicación puede consultar.</p>
+              <p class="fact">Un mismo programa puede actuar simultáneamente como cliente de un servicio y como servidor de otro, según el contexto.</p>
+              <div class="card-media">
+                <div class="slot img-slot">
+                  <span class="slot-label">Imagen ilustrativa</span>
+                  <img src="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2264%22%20height%3D%2264%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20fill%3D%22%23fbdcea%22/%3E%3Crect%20x%3D%2210%22%20y%3D%2212%22%20width%3D%2244%22%20height%3D%2214%22%20rx%3D%222%22%20fill%3D%22none%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222.5%22/%3E%3Crect%20x%3D%2210%22%20y%3D%2230%22%20width%3D%2244%22%20height%3D%2214%22%20rx%3D%222%22%20fill%3D%22none%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222.5%22/%3E%3Ccircle%20cx%3D%2218%22%20cy%3D%2219%22%20r%3D%221.8%22%20fill%3D%22%239c1856%22/%3E%3Ccircle%20cx%3D%2218%22%20cy%3D%2237%22%20r%3D%221.8%22%20fill%3D%22%239c1856%22/%3E%3Cline%20x1%3D%2226%22%20y1%3D%2219%22%20x2%3D%2246%22%20y2%3D%2219%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222%22/%3E%3Cline%20x1%3D%2226%22%20y1%3D%2237%22%20x2%3D%2246%22%20y2%3D%2237%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222%22/%3E%3C/svg%3E" alt="Características de cliente y servidor de servicios distribuidos" loading="lazy">
+                </div>
+                <div class="slot link-slot">
+                  <span class="slot-label">Enlace de referencia</span>
+                  <a href="https://www.google.com/search?q=Caracter%C3%ADsticas%20de%20cliente%20y%20servidor%20de%20servicios%20distribuidos" target="_blank" rel="noopener">Buscar sobre "Características de cliente y servidor de servicios distribuidos" &rarr;</a>
+                </div>
+              </div>
+            </div>
+          </article>
+          <article class="card">
+            <div class="card-bar"><span class="idx">S4.04</span><span>Tecnologías utilizadas en servicios distribuidos</span></div>
+            <div class="card-body">
+              <h4>Tecnologías utilizadas en servicios distribuidos</h4>
+              <p class="info">Entre las tecnologías más usadas para construir servicios distribuidos están las API REST, los mensajes en formato JSON y los protocolos de mensajería asíncrona. La elección depende del volumen de datos y de la necesidad de respuesta inmediata o diferida.</p>
+              <p class="example">Dos servicios que no necesitan responder al instante se comunican mediante una cola de mensajes en lugar de una petición directa.</p>
+              <p class="fact">El formato JSON desplazó en gran medida a XML como formato preferido para el intercambio de datos entre servicios distribuidos.</p>
+              <div class="card-media">
+                <div class="slot img-slot">
+                  <span class="slot-label">Imagen ilustrativa</span>
+                  <img src="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2264%22%20height%3D%2264%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20fill%3D%22%23fbdcea%22/%3E%3Crect%20x%3D%2210%22%20y%3D%2212%22%20width%3D%2244%22%20height%3D%2240%22%20rx%3D%221%22%20fill%3D%22none%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222.5%22/%3E%3Cline%20x1%3D%2210%22%20y1%3D%2226%22%20x2%3D%2254%22%20y2%3D%2226%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222%22/%3E%3Cline%20x1%3D%2210%22%20y1%3D%2239%22%20x2%3D%2254%22%20y2%3D%2239%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222%22/%3E%3Cline%20x1%3D%2232%22%20y1%3D%2212%22%20x2%3D%2232%22%20y2%3D%2252%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222%22/%3E%3C/svg%3E" alt="Tecnologías utilizadas en servicios distribuidos" loading="lazy">
+                </div>
+                <div class="slot link-slot">
+                  <span class="slot-label">Enlace de referencia</span>
+                  <a href="https://www.google.com/search?q=Tecnolog%C3%ADas%20utilizadas%20en%20servicios%20distribuidos" target="_blank" rel="noopener">Buscar sobre "Tecnologías utilizadas en servicios distribuidos" &rarr;</a>
+                </div>
+              </div>
+            </div>
+          </article>
+          <article class="card">
+            <div class="card-bar"><span class="idx">S4.05</span><span>Técnicas de interoperabilidad utilizando el protocolo HTTP</span></div>
+            <div class="card-body">
+              <h4>Técnicas de interoperabilidad utilizando el protocolo HTTP</h4>
+              <p class="info">HTTP se ha convertido en el protocolo base para que sistemas muy distintos entre sí puedan comunicarse, gracias a su sencillez y a la existencia de métodos estandarizados como GET y POST. Esta interoperabilidad facilita conectar aplicaciones que no comparten ni lenguaje ni plataforma.</p>
+              <p class="example">Un sistema de facturación programado en un lenguaje se comunica sin problemas con un sistema de inventario programado en otro distinto usando peticiones HTTP.</p>
+              <p class="fact">El uso de códigos de estado HTTP estandarizados permite que cualquier cliente entienda el resultado de una petición sin conocer los detalles internos del servidor.</p>
+              <div class="card-media">
+                <div class="slot img-slot">
+                  <span class="slot-label">Imagen ilustrativa</span>
+                  <img src="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2264%22%20height%3D%2264%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20fill%3D%22%23fbdcea%22/%3E%3Crect%20x%3D%2210%22%20y%3D%2212%22%20width%3D%2244%22%20height%3D%2214%22%20rx%3D%222%22%20fill%3D%22none%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222.5%22/%3E%3Crect%20x%3D%2210%22%20y%3D%2230%22%20width%3D%2244%22%20height%3D%2214%22%20rx%3D%222%22%20fill%3D%22none%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222.5%22/%3E%3Ccircle%20cx%3D%2218%22%20cy%3D%2219%22%20r%3D%221.8%22%20fill%3D%22%239c1856%22/%3E%3Ccircle%20cx%3D%2218%22%20cy%3D%2237%22%20r%3D%221.8%22%20fill%3D%22%239c1856%22/%3E%3Cline%20x1%3D%2226%22%20y1%3D%2219%22%20x2%3D%2246%22%20y2%3D%2219%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222%22/%3E%3Cline%20x1%3D%2226%22%20y1%3D%2237%22%20x2%3D%2246%22%20y2%3D%2237%22%20stroke%3D%22%239c1856%22%20stroke-width%3D%222%22/%3E%3C/svg%3E" alt="Técnicas de interoperabilidad utilizando el protocolo HTTP" loading="lazy">
+                </div>
+                <div class="slot link-slot">
+                  <span class="slot-label">Enlace de referencia</span>
+                  <a href="https://www.google.com/search?q=T%C3%A9cnicas%20de%20interoperabilidad%20utilizando%20el%20protocolo%20HTTP" target="_blank" rel="noopener">Buscar sobre "Técnicas de interoperabilidad utilizando el protocolo HTTP" &rarr;</a>
+                </div>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+    </div>
+
+  </div>
+  </div>
+</section>
+
+<footer>
+  <div>Compilado sin errores · 0 temas omitidos · <span class="sig">build estable</span></div>
+</footer>
+
+</body>
+</html>
